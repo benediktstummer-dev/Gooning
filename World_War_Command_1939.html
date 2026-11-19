@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>World War Command – Grand Strategy</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d2430;--card:#fff;--line:#c9c3b3;--sea:#cfe0ea;--n:#c9c2ae;--p0:#2f6fdb;--p1:#d6453d;--p2:#2f9e5b;--p3:#d99a12;--mut:#6b7380;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--fg:#e8ebf0;--card:#1e242e;--line:#3a4352;--sea:#16222d;--n:#3d4554;--mut:#98a1af}}
+:root[data-theme="dark"]{--bg:#14181f;--fg:#e8ebf0;--card:#1e242e;--line:#3a4352;--sea:#16222d;--n:#3d4554;--mut:#98a1af}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+main{max-width:900px;margin:0 auto;padding:14px}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--mut);font-size:.9rem;margin:4px 0 10px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.85rem}
+.dot{width:12px;height:12px;border-radius:50%}
+button,select{font:inherit;border-radius:8px;padding:8px 14px}
+button{background:var(--p0);color:#fff;border:0;cursor:pointer}
+button.sec{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:default}
+select{background:var(--card);color:var(--fg);border:1px solid var(--line);min-width:200px}
+#status{font-weight:600;margin:6px 0;min-height:1.4em}
+#wrap{position:relative}
+svg{width:100%;height:auto;background:radial-gradient(ellipse at 40% 35%,var(--sea2),var(--sea));border-radius:12px;border:1px solid var(--line);display:block;touch-action:none;user-select:none}
+svg path{stroke:var(--card);stroke-width:1.1;vector-effect:non-scaling-stroke;cursor:pointer;transition:opacity .15s}
+svg path:hover{filter:brightness(1.12)}
+svg text{text-anchor:middle;pointer-events:none;font-weight:700}
+.zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.zoom button{padding:4px 11px;background:var(--card);color:var(--fg);border:1px solid var(--line);font-size:1.1rem}
+#log{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.85rem;color:var(--mut);min-height:5.5em}
+#log div:first-child{color:var(--fg)}
+#diplomacy{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.88rem}
+#panel{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.95rem}
+#panel .row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+:root{--sea2:#e4eff6;--mt1:#c9bda2;--mt2:#7f7462;--snow:#fff;--tree:#2f6b3a;--river:#5aa6e0;--shallow:#eaf4f9;--grid:#9fb4c2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sea2:#1f3446;--mt1:#8a8678;--mt2:#4a463e;--tree:#173d22;--river:#3d7fb0;--shallow:#2b4a5e;--grid:#5f7a8c}}
+:root[data-theme="dark"]{--sea2:#1f3446;--mt1:#8a8678;--mt2:#4a463e;--tree:#173d22;--river:#3d7fb0;--shallow:#2b4a5e;--grid:#5f7a8c}
+svg .sd path{fill:#000;stroke:none;opacity:.35}
+svg .sh path{fill:none;stroke:var(--shallow);stroke-width:7;stroke-linejoin:round;opacity:.65;vector-effect:none;cursor:default}
+svg .gr{stroke:var(--grid);stroke-width:.6;opacity:.25}
+svg .sea{font-size:9px;font-style:italic;font-weight:400;letter-spacing:2px;fill:var(--mut);opacity:.75}
+svg .tr{fill:var(--tree);opacity:.6;stroke:none;cursor:default}
+svg .rv{fill:none;stroke:var(--river);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;opacity:.9;vector-effect:none;cursor:default}
+svg .m1{fill:var(--mt1);stroke:none;cursor:default}
+svg .m2{fill:var(--mt2);stroke:none;cursor:default}
+svg .sn{fill:var(--snow);stroke:none;opacity:.95;cursor:default}
+:root{--nl:78%}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nl:34%}}
+:root[data-theme="dark"]{--nl:34%}
+#chips .chip{border-left-width:5px}
+#chips .chip:nth-child(1){border-left-color:#e0a21a}
+#chips .chip:nth-child(2){border-left-color:#2f6fdb}
+#chips .chip:nth-child(3){border-left-color:#8a4fd6}
+#chips .chip:nth-child(4){border-left-color:#d6453d}
+#chips .chip:nth-child(5){border-left-color:#2f9e5b}
+svg .fr{stroke:#ff3b30;stroke-width:2.2;stroke-dasharray:6 5;stroke-linecap:round;animation:fl .6s linear infinite}
+@keyframes fl{to{stroke-dashoffset:-11}}
+#panel .nb{margin-top:6px;font-size:.8rem;align-items:center}
+#panel .nb button{padding:3px 8px;font-size:.8rem}
+details.sub ol{margin:6px 0 0;padding-left:20px;line-height:1.5}
+h1{background:linear-gradient(90deg,#2f6fdb,#8a4fd6,#d6453d);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.8rem;letter-spacing:.5px}
+button{background:linear-gradient(180deg,#4a8bf5,#2459b8);box-shadow:0 2px 0 rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.3);font-weight:600;transition:transform .08s,filter .15s}
+button.sec{background:linear-gradient(180deg,var(--card),var(--bg));box-shadow:0 2px 0 rgba(0,0,0,.12)}
+button:hover:not(:disabled){filter:brightness(1.1)}
+button:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.chip{box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#panel,#log{box-shadow:0 3px 12px rgba(0,0,0,.12)}
+svg{box-shadow:0 8px 28px rgba(0,0,0,.25);border:2px solid var(--line)}
+svg path[data-c]{stroke:rgba(30,25,15,.4);stroke-width:1}
+svg .wv{fill:none;stroke:var(--grid);stroke-width:.7;opacity:.2}
+svg .lt{opacity:.22}svg .lt path{fill:url(#lg);stroke:none;cursor:default}
+svg .hl path{fill:none;stroke:#fff;stroke-width:1;opacity:.3;transform:translate(-.7px,-.7px);cursor:default}
+svg .cl{fill:#fff;opacity:.3;animation:dr linear infinite}
+@keyframes dr{from{transform:translateX(-200px)}to{transform:translateX(760px)}}
+svg .rp{fill:none;stroke-width:3;transform-box:fill-box;transform-origin:center;animation:rp 1s ease-out forwards}
+@keyframes rp{from{transform:scale(1);opacity:1}to{transform:scale(7);opacity:0}}
+svg .hd{fill:#7d6040;opacity:.22;filter:url(#blur);stroke:none;cursor:default}
+svg .lk{fill:var(--sea2);stroke:var(--shallow);stroke-width:1.3;cursor:default}
+.fg{display:inline-block;width:22px;height:14px;border:1px solid rgba(0,0,0,.45);border-radius:2px;vertical-align:-2px}
+.pb{display:inline-block;width:46px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-left:6px}
+.pb i{display:block;height:100%;background:var(--p2)}
+#endbox{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+#endbox>div{background:var(--card);padding:22px 26px;border-radius:14px;text-align:center;max-width:340px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+#endbox h2{margin:0 0 8px}
+.hide{display:none!important}
+
+/* GRAND STRATEGY VISUAL OVERHAUL */
+:root{
+ --bg:#101820;--fg:#e7e6dc;--card:#1a2731;--line:#3c4b55;--sea:#102a3a;
+ --sea2:#17384b;--n:#77816f;--p0:#4e91b8;--p1:#bd5549;--p2:#668d65;--p3:#c39a4c;
+ --mut:#aab5b5;--shallow:#31536a;--grid:#7291a0;--mt1:#8b8872;--mt2:#55584b;
+}
+html,body{background:radial-gradient(ellipse at 50% -10%,#263c48 0,#101820 62%);color:var(--fg)}
+main{max-width:1240px;padding:18px 22px 28px}
+h1{font-size:1.35rem;letter-spacing:2.2px;text-transform:uppercase;color:#e5d5a7;
+ background:none;-webkit-text-fill-color:initial;margin-bottom:2px}
+h1:before{content:"FIELD COMMAND  /  ";font-size:.68rem;letter-spacing:2px;color:#8da5ad;vertical-align:2px}
+.sub{color:#9eafb4}
+#menuUI,#gameUI{background:linear-gradient(145deg,rgba(34,51,62,.96),rgba(19,31,40,.98));border:1px solid #455761;border-radius:12px;padding:13px 15px;margin:10px 0}
+#chips{gap:7px}
+.chip{background:linear-gradient(180deg,#263944,#1a2932);border:1px solid #435661;color:#e7e6dc;border-radius:5px;padding:7px 11px;box-shadow:inset 0 1px rgba(255,255,255,.06)}
+#chips .chip{border-left-width:4px}
+button,select{border-radius:4px}
+button{background:linear-gradient(180deg,#527d91,#31566b);border:1px solid #7895a0;color:#f5f4eb;box-shadow:inset 0 1px rgba(255,255,255,.12),0 2px 4px #0006;text-transform:uppercase;letter-spacing:.35px;font-size:.78rem}
+button.sec{background:linear-gradient(180deg,#2c3d47,#1c2a33);border:1px solid #53646b;color:#d5dfdd}
+button:hover:not(:disabled){filter:brightness(1.18)}
+select{background:#1a2a34;color:#e8e8df;border:1px solid #60737a}
+#status{padding:8px 11px;background:#172731;border-left:3px solid #c5a35b;color:#e5d5a7;font-size:.83rem;letter-spacing:.35px;margin:8px 0}
+#wrap{border:1px solid #60747a;border-radius:7px;overflow:hidden;background:#102a3a;box-shadow:0 12px 34px #0009}
+svg{border:0;border-radius:0;box-shadow:none;background:radial-gradient(ellipse at 46% 46%,#24495b,#102535 78%)}
+svg path[data-c]{stroke:#18262a;stroke-width:1.15;filter:drop-shadow(0 1px 1px #0008)}
+svg path[data-c]:hover{filter:brightness(1.22) drop-shadow(0 0 3px #f0dfaa)}
+svg .gr{opacity:.16;stroke:#a9c1c7}
+svg .sea{fill:#8caab6;opacity:.65;font-size:8px;letter-spacing:2.5px}
+svg .rv{stroke:#70a9c1;opacity:.7}
+svg .tr{fill:#243f32;opacity:.8}
+svg .m1{fill:#7c8065;opacity:.72}svg .m2{fill:#4f5748;opacity:.75}
+svg .sn{fill:#d9ded5;opacity:.9}
+svg .lk{fill:#285064;stroke:#52798b}
+svg .fr{stroke:#e5a45b;stroke-width:2.4;stroke-dasharray:5 4}
+#panel,#log,#diplomacy{background:linear-gradient(145deg,#1c2b35,#15232c);border:1px solid #425660;border-radius:7px;box-shadow:0 5px 18px #0005;color:#e6e8df}
+#panel{padding:14px}
+#panel .row b{align-self:center;color:#e5d5a7}
+#panel .row button{max-width:100%}
+#diplomacy{line-height:1.55}
+#panel .row{gap:7px}
+#panel .sub{color:#9eb0b3}
+#log{min-height:4.5em;color:#9fb0b2}
+#log div:first-child{color:#e9d9ad}
+#diplomacy{font-size:.82rem}
+.pb{background:#3c4d53}
+.pb i{background:#7da47b}
+.fg{border-color:#aab6b3}
+#endbox{background:rgba(4,10,14,.82);backdrop-filter:blur(5px)}
+#endbox>div{background:linear-gradient(145deg,#263b47,#14232c);border:1px solid #758c91;color:#f3ead0}
+details.sub summary{color:#d7c89e;cursor:pointer}
+@media(max-width:650px){
+ main{padding:10px}
+ h1:before{display:block;margin-bottom:4px}
+ #gameUI .bar{gap:5px}
+ button{padding:7px 9px;font-size:.7rem}
+ #panel .row button{flex:1 1 44%}
+}
+
+
+#commandCentre{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 3px 14px rgba(0,0,0,.18)}
+#commandCentre h2{font-size:1.05rem;margin:0 0 8px;letter-spacing:.08em;text-transform:uppercase}
+#commandCentre .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+#commandCentre .stat{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px}
+#commandCentre .stat b{display:block;font-size:1.15rem}
+#commandCentre .cmdrow{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+#commandCentre button{font-size:.83rem;padding:7px 10px}
+#commandCentre .muted{color:var(--mut);font-size:.82rem;line-height:1.4}
+#commandCentre .line{border-top:1px solid var(--line);margin:10px 0}
+#commandCentre select,#commandCentre input{min-width:0;max-width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px}
+#commandCentre .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 8px;margin:2px;font-size:.75rem}
+
+</style>
+</head>
+<body>
+<main>
+<h1>WORLD WAR COMMAND</h1>
+<div class="sub" style="letter-spacing:1.4px;text-transform:uppercase;font-size:.68rem">WW2 GRAND STRATEGY · COMMAND EDITION · 1939–1945</div>
+
+<section id="menuUI">
+  <div class="sub">Wähle dein Startland und Szenario. Im WW2-Modus starten historische Machtblöcke, die KI-Staaten kämpfen um Einfluss und Territorium. Baue deine Industrie auf, stelle Armeen zusammen und führe deine Nation durch den Krieg.</div>
+  <div class="bar">
+    <select id="sel"></select>
+    <button class="sec" id="rnd">Zufälliges Land</button>
+    <select id="scenario" title="Szenario"><option value="ww2" selected>WW2 · Europa 1939</option><option value="sandbox">Freies Europa</option></select>
+    <select id="lv" title="Schwierigkeit"><option value="0">Leicht</option><option value="1" selected>Normal</option><option value="2">Schwer</option></select>
+    <button id="go" disabled>Spiel starten</button>
+    <button id="cont" class="sec hide">Weiterspielen</button>
+  </div>
+<details class="sub"><summary><b>Anleitung</b></summary>
+  <ol>
+   <li>Wähle ein Startland. Du beginnst nur mit diesem Land.</li>
+   <li>Tippe es an und baue die Städte aus: mehr Geld und mehr Manpower.</li>
+   <li>Hebe Truppen aus (oder schalte Auto-Rekrutierung ein). Mit Forschung bekommst du Panzer und Flugzeuge.</li>
+   <li>Erkläre einem Nachbarn den Krieg (am besten dem gold markierten): deine Grenzarmeen kämpfen automatisch.</li>
+   <li>Schließe Bündnisse, nutze Friedensverträge und beobachte die eigenständige KI.</li>
+   <li>Rekrutiere Infanterie, Panzer und Flugzeuge. Handel tauscht Geld gegen Manpower.</li>
+   <li>Achte auf Unruhen und Bürgerkriegsrisiken in Europa.</li>
+   <li>Wähle WW2 1939 für historische Machtblöcke oder Freies Europa für einen offenen Start.</li>
+   <li>Baue Fabriken und Kasernen, produziere Artillerie und verlege Armeen zwischen Nachbarprovinzen.</li>
+   <li>Forschung schaltet stärkere Truppen frei; Fabriken erhöhen deine Einnahmen.</li>
+   <li>Der Spielstand wird automatisch gespeichert, im Menü kannst du weiterspielen.</li>
+  </ol></details>
+</section>
+
+<section id="gameUI" class="hide">
+  <div class="bar" id="chips"></div>
+  <div class="bar">
+    <button id="tabL">Karte</button>
+    <button id="tabR" class="sec">Forschung</button>
+    <button id="cmdArmy" class="sec">Armee</button>
+    <button id="cmdProd" class="sec">Produktion</button>
+    <button id="cmdGov" class="sec">Regierung</button>
+    <button id="cmdDip" class="sec">Diplomatie</button>
+    <button id="all" class="sec">Alle ausbauen</button>
+    <button id="auto" class="sec">Auto-Rekrutierung: aus</button>
+    <button id="spd" class="sec">Tempo: 1×</button>
+    <button id="pause" class="sec">⏸ Pause</button>
+    <button id="mute" class="sec">🔊</button>
+    <button id="menu" class="sec">Hauptmenü</button>
+  </div>
+</section>
+
+<div id="status"></div>
+<div id="wrap">
+  <svg id="map" viewBox="0 0 690 584"></svg>
+  <div class="zoom"><button id="zi" title="Heranzoomen">+</button><button id="zo" title="Herauszoomen">−</button><button id="zr" title="Ganze Karte">⌂</button></div>
+</div>
+<div id="panel" class="hide"></div>
+<div id="diplomacy" class="hide"></div>
+<div id="log" class="hide"></div>
+<div id="commandCentre" class="hide"></div>
+<div class="sub" style="margin-top:8px">Lagekarte: Ziehen zum Verschieben · Mausrad oder +/- zum Zoomen. Zahlen zeigen Truppenstärke bzw. Verteidigung. Deine Gebiete sind blau markiert, Kriegsgegner rot, Verbündete grün. Gelände, Wälder, Gebirge, Flüsse und Seewege sind schematisch dargestellt.</div>
+<div id="endbox" class="hide"><div><h2 id="et"></h2><p id="es"></p><button id="eb">Neues Spiel</button> <button id="ec" class="sec">Karte ansehen</button></div></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const R=[],B={};
+function C(id,n,l,a,p){R.push(B[id]={id,n,l,a:a.split(" "),p})}
+C("IS","Island",[-19,64.8],"NO UK",[[-22.7,63.9,-18.7,63.4,-14.6,64.3,-13.6,65.3,-15.2,66.2,-18.3,66.2,-21.8,66.0,-23.9,65.5,-22.2,64.6]]);
+C("NO","Norwegen",[9.5,61.5],"SE FI RU DK UK",[[6.5,58.0,5.5,59.0,4.9,60.8,5.2,62.3,8.0,63.5,10.0,64.5,12.0,66.0,14.5,67.7,16.5,68.7,19.0,70.0,23.0,70.8,28.5,71.0,31.0,70.3,28.9,69.0,25.0,68.6,20.6,69.0,16.0,67.5,14.7,66.0,13.0,64.0,12.3,62.0,12.0,60.0,11.2,59.0,8.6,58.3]]);
+C("SE","Schweden",[15.5,61.5],"NO FI DK",[[11.2,59.0,12.0,60.0,12.3,62.0,13.0,64.0,14.7,66.0,16.0,67.5,20.6,69.0,21.0,68.6,23.7,67.5,24.1,65.8,21.5,64.5,18.0,62.5,17.3,60.7,18.8,59.5,16.7,57.5,16.4,56.2,14.3,55.5,12.9,55.4,12.6,56.3,11.9,57.8]]);
+C("FI","Finnland",[26.5,63.5],"SE NO RU EE",[[20.6,69.0,25.0,68.6,28.9,69.0,30.0,67.7,29.8,66.0,30.0,64.5,31.5,63.0,30.0,61.5,28.0,60.5,25.0,60.1,22.9,59.9,21.3,61.0,21.5,62.5,22.8,63.7,25.0,65.0,24.1,65.8,23.7,67.5,21.0,68.6]]);
+C("EE","Estland",[25.5,58.7],"FI LV RU",[[23.4,58.6,24.4,59.5,26.5,59.6,28.0,59.5,27.4,57.8,24.3,57.9,23.4,57.9]]);
+C("LV","Lettland",[24.8,56.9],"EE LT BY RU",[[21.0,56.8,21.6,57.6,22.6,57.7,23.4,57.9,24.3,57.9,27.4,57.8,28.2,56.2,26.6,55.7,24.1,56.2,22.1,56.4,21.0,56.1]]);
+C("LT","Litauen",[23.8,55.2],"LV BY PL RU",[[21.1,55.3,21.0,56.1,22.1,56.4,24.1,56.2,26.6,55.7,26.6,55.2,25.5,54.2,24.0,53.9,23.5,53.9,23.4,54.2,22.8,54.4]]);
+C("RU","Russland",[36.5,58.5],"NO FI EE LV LT BY UA",[[31.0,70.3,44.0,69.0,44.0,47.0,40.0,48.3,40.0,49.6,38.0,50.0,35.5,51.0,34.0,52.2,32.0,52.1,31.0,54.0,30.5,55.8,28.2,56.2,27.4,57.8,28.0,59.5,28.0,60.5,30.0,61.5,31.5,63.0,30.0,64.5,29.8,66.0,30.0,67.7,28.9,69.0],[19.7,54.45,22.8,54.4,22.7,54.9,21.2,55.2,20.0,54.95]]);
+C("BY","Belarus",[28,53.5],"LV LT PL UA RU",[[23.5,53.9,24.0,53.9,25.5,54.2,26.6,55.2,26.6,55.7,28.2,56.2,30.5,55.8,31.0,54.0,32.0,52.1,30.5,51.5,28.0,51.6,23.5,51.6,23.9,52.7]]);
+C("UA","Ukraine",[31.5,49.5],"BY RU PL SK HU RO MD",[[23.5,51.6,28.0,51.6,30.5,51.5,32.0,52.1,34.0,52.2,35.5,51.0,38.0,50.0,40.0,49.6,40.0,48.3,38.5,47.1,35.0,46.3,36.5,45.3,35.0,44.7,33.6,44.4,32.5,45.4,33.7,46.1,31.5,46.6,30.1,46.5,29.2,47.5,28.4,48.2,26.6,48.2,24.0,47.9,22.9,47.9,22.2,48.4,22.7,49.1,24.1,50.9]]);
+C("MD","Moldau",[28.5,47.2],"UA RO",[[26.6,48.2,28.4,48.2,29.2,47.5,30.1,46.5,29.6,45.5,28.2,45.5,27.6,47.0]]);
+C("PL","Polen",[19,52],"DE CZ SK UA BY LT",[[14.2,53.9,16.0,54.4,18.5,54.8,19.6,54.4,22.8,54.4,23.5,53.9,23.9,52.7,23.5,51.6,24.1,50.9,22.7,49.1,20.1,49.2,18.9,49.5,17.7,50.3,16.4,50.6,15.0,51.0,14.6,52.6]]);
+C("DE","Deutschland",[10.5,51],"DK NL BE FR CH AT CZ PL",[[8.7,54.9,9.9,54.8,10.9,54.4,13.0,54.5,14.2,53.9,14.6,52.6,15.0,51.0,14.3,50.9,12.2,50.3,12.9,49.4,13.8,48.8,13.0,47.5,10.4,47.5,9.6,47.5,7.6,47.6,8.2,49.0,6.4,49.5,6.1,50.7,6.0,51.8,7.2,53.3,7.0,53.6]]);
+C("DK","Dänemark",[9.6,56],"DE SE NO",[[8.1,57.1,10.6,57.7,10.3,56.2,11.0,55.6,10.9,54.9,9.9,54.8,8.7,54.9,8.1,55.5],[11.1,55.9,12.6,56.0,12.6,55.1,11.7,55.0]]);
+C("NL","Niederlande",[5.7,52.4],"DE BE UK",[[3.4,51.4,4.0,52.0,4.7,52.9,5.6,53.4,7.2,53.3,6.0,51.8,5.8,51.1,5.0,51.5,4.2,51.4]]);
+C("BE","Belgien",[4.6,50.6],"NL DE FR",[[2.6,51.1,3.4,51.4,4.2,51.4,5.0,51.5,5.8,51.1,6.1,50.7,6.4,49.5,5.5,49.5,4.8,50.0,4.2,49.95,2.6,50.2]]);
+C("FR","Frankreich",[2.5,46.8],"BE DE CH IT ES UK",[[2.6,51.1,2.6,50.2,4.2,49.95,4.8,50.0,5.5,49.5,6.4,49.5,8.2,49.0,7.6,47.6,6.0,46.3,7.0,45.9,6.9,45.1,7.6,44.1,6.5,43.1,4.5,43.4,3.1,43.0,3.0,42.4,1.8,42.5,0.7,42.8,-1.8,43.4,-1.2,44.7,-1.3,46.0,-2.2,47.2,-4.5,47.8,-4.7,48.4,-1.6,48.7,-1.5,49.7,0.2,49.7,1.6,50.2]]);
+C("UK","Großbritannien",[-2,53],"IE FR NL NO IS",[[-5.7,50.1,-3.0,50.6,1.4,51.1,1.7,52.7,0.3,53.5,-0.2,54.5,-1.6,55.6,-2.0,56.0,-2.5,57.6,-1.8,57.6,-3.5,58.6,-5.0,58.6,-6.2,57.5,-5.6,56.0,-5.0,55.0,-3.1,54.9,-3.0,54.0,-3.5,53.3,-4.7,53.3,-4.2,52.5,-5.2,51.8,-3.2,51.5,-4.2,51.0],[-8.2,54.5,-7.3,55.3,-5.8,55.2,-5.5,54.5,-6.0,54.0,-6.4,54.1,-7.3,54.1]]);
+C("IE","Irland",[-7.8,53.2],"UK",[[-9.5,51.5,-6.2,52.2,-6.1,53.3,-6.3,54.0,-7.3,54.1,-8.2,54.5,-8.5,55.1,-10.0,54.2,-10.0,53.4,-9.8,52.2]]);
+C("ES","Spanien",[-3.7,40.2],"PT FR",[[-1.8,43.4,0.7,42.8,1.8,42.5,3.0,42.4,3.2,41.9,0.8,40.8,-0.3,39.4,0.0,38.7,-0.8,37.6,-2.2,36.7,-4.4,36.7,-5.6,36.0,-6.4,36.8,-7.4,37.2,-7.0,38.2,-7.3,39.6,-6.9,40.5,-6.2,41.6,-6.8,41.9,-8.2,42.1,-8.8,41.9,-9.2,42.9,-8.3,43.7,-5.7,43.6,-3.8,43.5]]);
+C("PT","Portugal",[-8,39.6],"ES",[[-8.8,41.9,-8.2,42.1,-6.8,41.9,-6.2,41.6,-6.9,40.5,-7.3,39.6,-7.0,38.2,-7.4,37.2,-8.9,37.0,-9.5,38.7,-8.9,40.2]]);
+C("CH","Schweiz",[8.2,46.8],"FR DE AT IT",[[6.0,46.3,7.6,47.6,9.6,47.5,10.4,47.0,10.4,46.5,8.9,45.9,7.0,45.9]]);
+C("IT","Italien",[12.2,42.5],"FR CH AT SI MT",[[7.0,45.9,8.9,45.9,10.4,46.5,12.3,47.0,13.7,46.5,13.6,45.7,12.3,45.3,12.5,44.2,13.7,43.5,14.2,42.4,15.9,41.9,17.2,41.0,18.5,40.2,16.9,40.4,16.6,39.6,17.1,39.0,16.0,37.9,15.7,39.5,15.5,40.1,14.0,40.8,12.5,41.6,10.9,42.6,10.2,43.9,8.8,44.4,7.6,44.1,6.9,45.1],[12.4,38.1,15.6,38.3,15.1,36.7,12.5,37.6],[8.2,40.9,9.7,41.0,9.6,39.2,8.4,39.0]]);
+C("MT","Malta",[14.4,36],"IT",[[14.1,36.1,14.7,36.1,14.7,35.8,14.2,35.8]]);
+C("AT","Österreich",[14.5,47.6],"DE CH IT SI HU SK CZ",[[13.0,47.5,13.8,48.8,14.7,48.6,16.0,48.7,17.1,48.0,16.5,47.7,16.4,46.9,15.0,46.6,13.7,46.5,12.3,47.0,10.4,47.0,10.4,47.5]]);
+C("CZ","Tschechien",[15.4,49.8],"DE PL SK AT",[[12.2,50.3,14.3,50.9,15.0,51.0,16.4,50.6,17.7,50.3,18.9,49.5,17.1,48.9,16.0,48.7,14.7,48.6,13.8,48.8,12.9,49.4]]);
+C("SK","Slowakei",[19.5,48.6],"CZ PL UA HU AT",[[22.2,48.4,22.7,49.1,20.1,49.2,18.9,49.5,17.1,48.9,17.1,48.0,18.8,47.8,19.7,48.2,21.7,48.4]]);
+C("HU","Ungarn",[19.4,47.2],"SK UA RO RS HR SI AT",[[22.2,48.4,22.9,47.9,22.1,47.3,21.3,46.3,20.3,46.1,19.5,46.2,18.9,45.9,17.0,46.0,16.4,46.5,16.4,46.9,16.5,47.7,17.1,48.0,18.8,47.8,19.7,48.2,21.7,48.4]]);
+C("SI","Slowenien",[14.9,46.1],"AT HU HR IT",[[13.7,46.5,15.0,46.6,16.4,46.6,16.1,46.0,15.0,45.5,14.5,45.4,13.6,45.5,13.6,45.7]]);
+C("HR","Kroatien",[16.8,45.4],"SI HU RS BA ME",[[13.6,45.5,14.5,45.4,15.0,45.5,16.1,46.0,16.4,46.5,17.0,46.0,18.9,45.9,19.0,45.2,18.0,45.1,16.3,45.0,16.2,44.2,17.6,43.1,18.5,42.4,17.6,42.9,16.4,43.5,15.2,44.1,14.5,45.0,13.9,45.1]]);
+C("BA","Bosnien",[17.8,44.3],"HR RS ME",[[16.3,45.0,18.0,45.1,19.0,45.2,19.4,44.7,19.1,43.6,18.5,43.0,17.6,43.1,16.2,44.2]]);
+C("RS","Serbien",[20.8,44.3],"HU RO BG MK ME BA HR AL",[[18.9,45.9,19.5,46.2,20.3,46.1,21.4,45.2,22.5,44.6,22.9,43.8,22.9,43.2,22.4,42.3,21.5,42.2,20.6,42.1,20.3,42.8,19.4,43.4,19.1,43.6,19.4,44.7,19.0,45.2]]);
+C("ME","Montenegro",[19.3,42.8],"HR BA RS AL",[[18.5,43.0,19.1,43.6,19.4,43.4,20.3,42.8,20.0,42.4,19.4,41.9,18.5,42.4]]);
+C("AL","Albanien",[20,41],"ME MK GR RS",[[19.4,41.9,20.3,42.8,20.6,42.1,20.5,41.5,20.9,40.9,20.4,40.0,19.9,39.7,19.4,40.4,19.5,41.4]]);
+C("MK","Nordmazedonien",[21.6,41.6],"RS BG GR AL",[[20.6,42.1,21.5,42.2,22.4,42.3,23.0,41.3,22.0,41.1,20.9,40.9,20.5,41.5]]);
+C("GR","Griechenland",[22,39.5],"AL MK BG TR",[[19.9,39.7,20.4,40.0,20.9,40.9,22.0,41.1,23.0,41.3,24.0,41.5,25.0,41.3,26.1,41.4,24.5,40.9,23.6,40.3,22.8,40.0,23.6,38.9,24.0,38.0,23.2,37.6,23.2,36.5,22.4,36.5,21.7,37.0,21.1,38.0,21.0,38.7,20.2,39.4],[23.6,35.3,26.3,35.3,26.0,35.0,24.0,35.0]]);
+C("BG","Bulgarien",[25.2,42.8],"RO RS MK GR TR",[[22.9,43.8,25.0,43.7,27.0,44.1,28.6,43.5,27.9,42.6,27.5,42.0,26.3,41.7,26.1,41.4,25.0,41.3,24.0,41.5,23.0,41.3,22.4,42.3,22.9,43.2]]);
+C("RO","Rumänien",[24.8,45.9],"UA MD HU RS BG",[[22.9,47.9,24.0,47.9,26.6,48.2,27.6,47.0,28.2,45.5,29.6,45.5,29.7,44.8,28.7,43.7,27.0,44.1,25.0,43.7,22.9,43.8,22.5,44.6,21.4,45.2,20.3,46.1,21.3,46.3,22.1,47.3]]);
+C("TR","Türkei",[33,39],"BG GR",[[26.1,41.4,26.3,41.7,28.0,41.9,31.0,41.1,35.0,42.0,41.0,41.0,44.0,41.0,44.0,37.0,36.5,36.6,33.0,36.1,30.5,36.3,28.0,36.6,27.2,37.1,26.4,38.3,26.2,39.3,26.2,40.0,26.0,40.7]]);
+
+R.forEach(c=>c.adj=new Set());
+R.forEach(c=>c.a.forEach(o=>{if(B[o]){c.adj.add(o);B[o].adj.add(c.id)}}));
+const codes=R.map(c=>c.id),adj={};R.forEach(c=>adj[c.id]=c.adj);
+const px=(lo,la)=>[(lo+25)*10,(71.5-la)*16];
+R.forEach(c=>{
+  c.d=c.p.map(q=>{let s="";for(let i=0;i<q.length;i+=2){const[x,y]=px(q[i],q[i+1]);s+=(i?"L":"M")+x.toFixed(1)+","+y.toFixed(1)}return s+"Z"}).join("");
+  c.c=px(c.l[0],c.l[1]);
+});
+
+const COL=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"],NAMES=["Du (Blau)","Rot","Grün","Gelb"];
+let mode="menu",pick=null,own,tr,pool,sel,phase,over,logs,turn;
+const svg=$("map"),FULL={x:0,y:0,w:690,h:584};let V={...FULL};
+const count=p=>codes.filter(c=>own[c]===p).length;
+var LV=1;
+const REG=[["IS NO SE FI DK",3],["EE LV LT PL BY UA MD RU",4],["UK IE FR BE NL DE",4],["ES PT",2],["CH AT CZ SK HU SI",4],["IT MT",2],["HR BA RS ME AL MK GR BG RO TR",5]];
+const bonus=p=>REG.reduce((s,r)=>s+(r[0].split(" ").every(c=>own[c]===p)?r[1]:0),0);
+const reinf=p=>Math.max(3,Math.floor(count(p)/3))+bonus(p);
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+
+function setView(){svg.setAttribute("viewBox",`${V.x} ${V.y} ${V.w} ${V.h}`)}
+function zoom(f,cx,cy){
+  const w=Math.min(690,Math.max(110,V.w/f)),h=w*584/690;
+  cx=cx??V.x+V.w/2;cy=cy??V.y+V.h/2;
+  const rx=(cx-V.x)/V.w,ry=(cy-V.y)/V.h;
+  V={x:cx-rx*w,y:cy-ry*h,w,h};clampView();setView();
+}
+function clampView(){V.x=Math.min(Math.max(V.x,-40),690-V.w+40);V.y=Math.min(Math.max(V.y,-40),584-V.h+40)}
+$("zi").onclick=()=>zoom(1.5);$("zo").onclick=()=>zoom(1/1.5);$("zr").onclick=()=>{V={...FULL};setView()};
+svg.addEventListener("wheel",e=>{e.preventDefault();const r=svg.getBoundingClientRect();
+  zoom(e.deltaY<0?1.2:1/1.2,V.x+(e.clientX-r.left)/r.width*V.w,V.y+(e.clientY-r.top)/r.height*V.h)},{passive:false});
+const ptr=new Map();let pd0=0,drag=null,moved=false;
+svg.addEventListener("pointerdown",e=>{ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===1){drag={x:e.clientX,y:e.clientY,vx:V.x,vy:V.y};moved=false}
+  else if(ptr.size===2){const[a,b]=[...ptr.values()];pd0=Math.hypot(a.x-b.x,a.y-b.y);drag=null;moved=true}});
+window.addEventListener("pointermove",e=>{
+  if(ptr.has(e.pointerId))ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===2){const[a,b]=[...ptr.values()],d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(pd0&&d>0){const r=svg.getBoundingClientRect();zoom(d/pd0,V.x+((a.x+b.x)/2-r.left)/r.width*V.w,V.y+((a.y+b.y)/2-r.top)/r.height*V.h);pd0=d}return}
+  if(!drag)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(Math.abs(dx)+Math.abs(dy)>5)moved=true;
+  if(moved){const k=V.w/svg.clientWidth;V.x=drag.vx-dx*k;V.y=drag.vy-dy*k;clampView();setView()}});
+const pend=e=>{ptr.delete(e.pointerId);if(!ptr.size)drag=null};
+window.addEventListener("pointerup",pend);window.addEventListener("pointercancel",pend);
+svg.addEventListener("click",e=>{
+  if(moved){moved=false;return}
+  const t=e.target.closest("[data-c]");if(t)click(t.dataset.c);
+});
+
+var st={},rel={},res={},money=0,man=0,pm=0,rq=null,auto=false,tab="land",timer=null,won=false,lost=false,spd=1,paused=false,mute=false,tk=0,FX=[];
+R.forEach(c=>{let a=0;c.p.forEach(q=>{for(let i=0;i<q.length;i+=2){const[x1,y1]=px(q[i],q[i+1]),[x2,y2]=px(q[(i+2)%q.length],q[(i+3)%q.length]);a+=x1*y2-x2*y1}});c.val=Math.max(1,Math.round(Math.abs(a)/2/1200))});
+const fmt=n=>n>=1000?(n/1000).toFixed(1)+"k":Math.floor(n);
+const mine=c=>own[c]===0;
+const RK=[["eco","Wirtschaft","+25 % Geld"],["pop","Bevölkerung","+25 % Manpower"],["mil","Militär","+25 % Armeestärke"],["adm","Verwaltung","+0,15 Politische Macht/s"],["log","Logistik","-10 % Ausbaukosten"],["fort","Festungen","-15 % Schaden durch Gegner"],["dip","Diplomatie","-20 % Kosten für Politische Macht"],["bil","Bildung","+10 % Geld und Manpower"]];
+const mm=()=>1+.25*res.eco+.1*res.bil,pp=()=>1+.25*res.pop+.1*res.bil,ml=()=>1+.25*res.mil;
+const dc=b=>Math.round(b*(1-.2*res.dip));
+const upCost=c=>st[c].l>=10?1e18:Math.round(30*Math.pow(1.55,st[c].l)*(1+B[c].val/6)*(1-.1*res.log));
+const border=c=>!mine(c)&&[...adj[c]].some(mine);
+const front=c=>mine(c)&&[...adj[c]].some(e=>!mine(e)&&rel[e]===1);
+function rates(){let m=0,p=0,ar=0;codes.forEach(c=>{if(mine(c)){m+=B[c].val*.5*(1+.6*st[c].l)*(1+.35*(st[c].fac||0));p+=B[c].val*.1*(1+.5*st[c].l)*(1+.25*(st[c].barr||0));ar+=st[c].a}else if(rel[c]===2)m+=B[c].val*.2});return[m*mm(),p*pp(),.2+.15*res.adm,ar]}
+function log(t){logs.unshift(t);logs=logs.slice(0,7);$("log").innerHTML=logs.map(l=>"<div>"+l+"</div>").join("")}
+
+const FL={IS:"h|#02529c|#dc1e35|#02529c",NO:"h|#ba0c2f|#00205b|#ba0c2f",SE:"h|#006aa7|#fecc00|#006aa7",FI:"h|#fff|#003580|#fff",EE:"h|#0072ce|#111|#fff",LV:"h|#9e3039|#fff|#9e3039",LT:"h|#fdb913|#006a44|#c1272d",RU:"h|#fff|#0039a6|#d52b1e",BY:"h|#c8313e|#c8313e|#4aa657",UA:"h|#0057b7|#ffd700",MD:"v|#003da5|#ffd200|#cc092f",PL:"h|#fff|#dc143c",DE:"h|#111|#dd0000|#ffce00",DK:"h|#c8102e|#fff|#c8102e",NL:"h|#ae1c28|#fff|#21468b",BE:"v|#111|#fae042|#ed2939",FR:"v|#0055a4|#fff|#ef4135",UK:"h|#012169|#c8102e|#012169",IE:"v|#169b62|#fff|#ff883e",ES:"h|#aa151b|#f1bf00|#f1bf00|#aa151b",PT:"v|#046a38|#da291c|#da291c",CH:"h|#da291c",IT:"v|#009246|#fff|#ce2b37",MT:"v|#fff|#cf142b",AT:"h|#ed2939|#fff|#ed2939",CZ:"h|#fff|#d7141a",SK:"h|#fff|#0b4ea2|#ee1c25",HU:"h|#ce2939|#fff|#477050",SI:"h|#fff|#005da4|#ed1c24",HR:"h|#ff0000|#fff|#171796",BA:"h|#002395",RS:"h|#c6363c|#0c4076|#fff",ME:"h|#c40308",AL:"h|#e41e20",MK:"h|#d20000",GR:"h|#0d5eaf|#fff|#0d5eaf|#fff|#0d5eaf",BG:"h|#fff|#00966e|#d62612",RO:"v|#002b7f|#fcd116|#ce1126",TR:"h|#e30a17"};
+var FD="<defs>";
+Object.keys(FL).forEach(id=>{const[o,...cs]=FL[id].split("|"),n=cs.length;let s="";cs.forEach((c,i)=>{s+=`<stop offset="${i/n}" stop-color="${c}"/><stop offset="${(i+1)/n}" stop-color="${c}"/>`});FD+=`<linearGradient id="fl_${id}" x1="0" y1="0" x2="${o==="v"?1:0}" y2="${o==="h"?1:0}">${s}</linearGradient>`});
+FD+=`<linearGradient id="terrainLand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a6a184"/><stop offset=".48" stop-color="#85866d"/><stop offset="1" stop-color="#656f60"/></linearGradient><linearGradient id="terrainSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18384a"/><stop offset="1" stop-color="#0e2637"/></linearGradient><filter id="countryShade" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="b"/><feOffset dy="1" result="o"/><feComponentTransfer><feFuncA type="linear" slope=".45"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;FD+="</defs>";
+function flag(id){if(!FL[id])return"";const[o,...cs]=FL[id].split("|"),n=cs.length;return `<span class="fg" style="background:linear-gradient(${o==="v"?"90deg":"180deg"},${cs.map((c,i)=>`${c} ${i/n*100}%,${c} ${(i+1)/n*100}%`).join(",")})"></span>`}
+var BG="",FG="";
+(function(){
+  let s=7;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+  const inPoly=(q,x,y)=>{let r=false;for(let i=0,j=q.length-2;i<q.length;j=i,i+=2){const xi=q[i],yi=q[i+1],xj=q[j],yj=q[j+1];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)r=!r}return r};
+  const all=R.map(c=>`<path d="${c.d}"/>`).join("");
+  let bg='<defs><filter id="blur" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.4"/></filter><pattern id="wv" width="26" height="14" patternUnits="userSpaceOnUse"><path d="M0,7 q6.5,-6 13,0 t13,0" class="wv"/></pattern><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000"/></linearGradient></defs><g style="pointer-events:none"><rect width="690" height="584" fill="url(#wv)"/>';
+  for(let lo=-20;lo<=40;lo+=10){const x=px(lo,0)[0];bg+=`<line x1="${x}" y1="0" x2="${x}" y2="584" class="gr"/>`}
+  for(let la=40;la<=70;la+=10){const y=px(0,la)[1];bg+=`<line x1="0" y1="${y}" x2="690" y2="${y}" class="gr"/>`}
+  [["Atlantik",-14,47],["Nordsee",3.2,56.2],["Ostsee",19.5,57.3],["Mittelmeer",15,37.6],["Schwarzes Meer",34.5,43.2],["Norwegisches Meer",1,67.5],["Biskaya",-6,45.2]].forEach(([n,lo,la])=>{const[x,y]=px(lo,la);bg+=`<text x="${x}" y="${y}" class="sea">${n}</text>`});
+  bg+=`<g class="sd" filter="url(#blur)" transform="translate(2,3.5)">${all}</g><g class="sh">${all}</g></g>`;
+  BG=bg;
+
+  let tr="";
+  const F={SE:60,FI:60,NO:35,RU:100,BY:30,LV:18,EE:14,LT:14,PL:22,DE:28,CZ:14,AT:12,SK:11,RO:14,UA:16,FR:14,UK:9,ES:12,BA:12,HR:8,RS:9,BG:8,PT:6,HU:5};
+  Object.keys(F).forEach(id=>{
+    const c=B[id];let xs=[],ys=[];
+    c.p.forEach(q=>{for(let i=0;i<q.length;i+=2){xs.push(q[i]);ys.push(q[i+1])}});
+    const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+    let n=0;
+    for(let t=0;t<F[id]*14&&n<F[id]*1.6;t++){
+      const lo=x0+rnd()*(x1-x0),la=y0+rnd()*(y1-y0);
+      if(lo>43)continue;
+      if(!c.p.some(q=>inPoly(q,lo,la)))continue;
+      const[x,y]=px(lo,la),z=.7+rnd()*.7;tr+=`M${x.toFixed(1)},${(y-4.5*z).toFixed(1)}L${(x+2.4*z).toFixed(1)},${y.toFixed(1)}L${(x-2.4*z).toFixed(1)},${y.toFixed(1)}Z`;n++;
+    }
+  });
+
+  const rv=[[8.2,47.6,7.6,49,8.4,50,6.9,51.2,6,51.8,4.2,51.9],[8.5,48,12,48.9,16.5,48.2,19,47.5,19,45.5,21.5,44.8,25,43.8,28,44.2,29.5,45.2],[14,50.5,13.5,52,11,53.2,9.5,53.8],[19,49.7,21,51,19.5,52.5,18.8,54.3],[31.5,55,31,52,31,49,33,47,32,46.6],[4,45.3,2,47.4,-2,47.2],[4.7,48,2.3,48.8,0.3,49.4],[7.5,44.8,11,45,12.3,44.9],[-3.5,42.7,-1,41.7,0.8,40.7],[-2,40.5,-6,39.7,-9,38.7],[28,59,30,57,34,56,39,56.5],[18,59,21,60.5,24,62]];
+  let rd="";
+  rv.forEach(p=>{rd+=p.map((v,i)=>i%2?"":"").join("");for(let i=0;i<p.length;i+=2){const[x,y]=px(p[i],p[i+1]);rd+=(i?"L":"M")+x.toFixed(1)+","+y.toFixed(1)}});
+
+  const MT=[[9,[6.8,44.3,7,45.6,8.5,46.4,10.2,46.6,12,46.8,13.5,46.7,15.2,47.2]],[6,[-1.8,43.1,0,42.7,1.5,42.6,3,42.4]],[8,[19,49.3,21,49.4,23,48.5,24.8,47.7,26.3,46.8,25.5,45.6,23.5,45.3,22.2,45.2]],[8,[6.5,59.8,7.5,61.4,9.5,62.2,12,63.5,13.5,65.5,15.5,67,18,68.3,20.5,69.2]],[4,[8.8,44.5,10.5,44,12,43.4,13.5,42.5,15,41.2,16.2,39.8]],[6,[14.3,45.6,16,44.5,17.8,43.7,19.2,43,20.3,42.3]],[5,[20.5,41,21.2,40,21.8,39.2,22.3,38.5]],[5,[22.5,43,24.5,42.9,26.5,42.8]],[4,[23.2,42.2,24.2,41.9]],[4,[-5.5,56.7,-4.5,57.2,-3.8,57.5]],[5,[-5.2,36.9,-3.5,37,-2,37.4]],[5,[-8,43,-6,43.1,-4,43.1]],[5,[-6.5,40.3,-4.5,40.8,-2.8,41]],[5,[2.3,45.8,3.2,45,3.7,44.3]],[4,[7,48.2,8,48,8.3,47.8]],[4,[9.5,50.4,11.5,50.5,13,50.5,14.8,50.8]],[4,[-21,64.5,-18.5,64.7,-16,65]],[6,[27.5,37.2,30,37.3,33,37,36,37.6,40,38.2]],[5,[31,41.2,35,41.5,40,40.8]]];
+  const G=[];
+  MT.forEach(([w,p])=>{
+    for(let i=0;i+3<p.length;i+=2){
+      const[ax,ay]=px(p[i],p[i+1]),[bx,by]=px(p[i+2],p[i+3]),L=Math.hypot(bx-ax,by-ay),n=Math.max(1,Math.round(L/6));
+      for(let k=0;k<n;k++){const t=k/n;
+        for(let r=0;r<(w>5?2:1);r++)G.push([ax+(bx-ax)*t+(rnd()-.5)*w*1.4,ay+(by-ay)*t+(rnd()-.5)*w*1.4,3.6+rnd()*3.2])}
+    }
+  });
+  G.sort((a,b)=>a[1]-b[1]);
+  let m1="",m2="",sn="";
+  G.forEach(([x,y,z])=>{
+    const f=v=>v.toFixed(1),ap=`${f(x)},${f(y-z*1.3)}`;
+    m1+=`M${ap}L${f(x-z)},${f(y)}L${f(x+z*.1)},${f(y)}Z`;
+    m2+=`M${ap}L${f(x+z*.1)},${f(y)}L${f(x+z)},${f(y)}Z`;
+    if(z>4.6)sn+=`M${ap}L${f(x-z*.3)},${f(y-z*.85)}L${f(x+z*.3)},${f(y-z*.85)}Z`;
+  });
+  const tex=`<clipPath id="lc">${all}</clipPath><filter id="nz" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feColorMatrix values="0 0 0 0 .36 0 0 0 0 .3 0 0 0 0 .16 0 0 0 1.5 -.5"/></filter><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><g clip-path="url(#lc)"><rect width="690" height="584" filter="url(#nz)" opacity=".36"/><rect width="690" height="110" fill="url(#sg)"/></g>`;
+  let hd="";
+  MT.forEach(([w,p])=>{for(let i=0;i+3<p.length;i+=2){const[ax,ay]=px(p[i],p[i+1]),[bx,by]=px(p[i+2],p[i+3]),L=Math.hypot(bx-ax,by-ay),n=Math.max(1,Math.round(L/10));
+    for(let k=0;k<n;k++){const t=k/n,x=ax+(bx-ax)*t,y=ay+(by-ay)*t,r=w*1.7+3;hd+=`M${(x-r).toFixed(1)},${y.toFixed(1)}a${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(2*r).toFixed(1)},0a${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(-2*r).toFixed(1)},0`}}});
+  let lk="";
+  [[31.5,60.8,10,12],[35.5,61.8,6,13],[27.5,58.4,5,8],[13.2,58.9,7,8],[14.6,58.3,3,10],[17.2,59.5,7,3],[9.4,47.6,3.5,2],[6.5,46.4,5,1.6],[17.7,46.8,6,1.8],[10.7,45.6,1.6,3.5],[25.6,61.4,2.5,7],[28.2,61.3,5,5],[27.5,69,5,3],[10.8,60.8,1.6,5],[20.7,41,2,3.2]].forEach(([lo,la,rx,ry])=>{const[x,y]=px(lo,la);lk+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}" class="lk"/>`});
+  let ships="";
+  [[[3,38.5],[12,36.8],[20,35.2],[27,35.4]],[[2,57.5],[4.5,59.5]],[[17,56.3],[20,58.4]],[[-12,45],[-8,47.5]],[[31,43.4],[36,43.6]],[[-14,40],[-12,37]]].forEach((r,i)=>{
+    const p=r.map(([lo,la])=>px(lo,la)),d="M"+[...p,...p.slice(0,-1).reverse()].map(q=>q.map(v=>v.toFixed(1)).join(",")).join("L");
+    ships+=`<g><path d="M-4,1L4,1L2.5,3.6L-2.5,3.6Z" fill="#6b4a2b"/><path d="M0,-4.5L0,1L3.6,1Z" fill="#fff"/><animateMotion dur="${55+i*11}s" repeatCount="indefinite" path="${d}"/></g>`});
+  let cl="";
+  [[40,90,0],[300,260,-30],[120,430,-60],[520,150,-15],[380,500,-45]].forEach(([x,y,d],i)=>{cl+=`<g class="cl" style="animation-delay:${d}s;animation-duration:${80+i*17}s"><g style="filter:url(#blur)"><ellipse cx="${x}" cy="${y}" rx="34" ry="9"/><ellipse cx="${x+20}" cy="${y-6}" rx="24" ry="8"/><ellipse cx="${x-18}" cy="${y+2}" rx="22" ry="7"/></g></g>`});
+  FG=`<g style="pointer-events:none"><g class="lt">${all}</g><g class="hl">${all}</g>${tex}${ships}<path d="${hd}" class="hd"/>${lk}<path d="${tr}" class="tr"/><path d="${rd}" class="rv"/><path d="${m1}" class="m1"/><path d="${m2}" class="m2"/><path d="${sn}" class="sn"/>${cl}</g>`;
+})();
+
+const SK="europa-save-v3-ww2-campaign";
+let AC=null;
+function beep(fr,d){if(mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=fr;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(x){}}
+function event(){
+  const r=Math.random(),mc=codes.filter(mine);if(!mc.length)return;
+  if(r<.25){money*=.8;log("📉 Wirtschaftskrise: du verlierst 20 % deines Geldes.")}
+  else if(r<.5){const c=mc[Math.random()*mc.length|0];st[c].a*=.7;log(`✊ Aufstand in <b>${B[c].n}</b>: 30 % der Truppen dort gehen verloren.`)}
+  else if(r<.7){const g=Math.round(60+count(0)*20);money+=g;log(`🎁 Handelsabkommen: +${g} 💰`)}
+  else if(r<.88){const g=20+count(0)*5;man+=g;log(`👥 Bevölkerungsboom: +${g} Manpower`)}
+  else if(rq){rq.t=Math.ceil(rq.t/2);log("💡 Forschungsdurchbruch: Forschungszeit halbiert.")}
+  else{pm+=10;log("🏛️ Politischer Erfolg: +10 Politische Macht")}
+}
+function save(){if(mode!=="game"||won||lost)return;try{localStorage.setItem(SK,JSON.stringify({own,st,rel,res,money,man,pm,rq,auto,pick,LV,logs,aiOwner,tk,scenario:$("scenario").value}))}catch(x){}}
+function hasSave(){try{return !!localStorage.getItem(SK)}catch(x){return false}}
+function ctl(){spd=1;paused=false;$("spd").textContent="Tempo: 1×";$("pause").textContent="⏸ Pause";$("mute").textContent=mute?"🔇":"🔊"}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(SK)||"null");if(!s)return;
+    ({own,st,rel,res,money,man,pm,rq,auto,pick,LV,logs}=s);
+    if(s.scenario)$("scenario").value=s.scenario;
+    aiOwner=s.aiOwner||{};tk=s.tk||0;initAI();
+  }catch(x){return}
+  won=lost=false;sel=null;tab="land";mode="game";ctl();
+  $("menuUI").classList.add("hide");$("gameUI").classList.remove("hide");$("log").classList.remove("hide");$("panel").classList.remove("hide");$("diplomacy").classList.remove("hide");
+  $("log").innerHTML=logs.map(l=>"<div>"+l+"</div>").join("");
+  render();panel();clearInterval(timer);timer=setInterval(step,1000);
+}
+window.addEventListener("pagehide",save);
+function showEnd(w){
+  $("et").textContent=w?"🏆 Sieg! Ganz Europa gehört dir.":"💀 Niederlage";
+  $("es").textContent=`Spielzeit: ${Math.floor(tk/60)}:${String(tk%60).padStart(2,"0")} · Forschungen: ${Object.values(res).reduce((a,b)=>a+b,0)} · Länder am Ende: ${count(0)}`;
+  $("endbox").classList.remove("hide");beep(w?880:140,.5);
+}
+function tipC(){let t=null;codes.forEach(c=>{if(!mine(c)&&rel[c]===0&&border(c)&&(!t||st[c].d<st[t].d))t=c});return t}
+function render(){
+  let h="";
+  const tip=mode==="game"?tipC():null;
+  let ov="";
+  R.forEach(c=>{
+    let o=-1;
+    if(mode==="menu"){if(c.id===pick)o=0}
+    else o=mine(c.id)?0:rel[c.id]===1?1:rel[c.id]===2?2:-1;
+    let stl=o>=0?`stroke:${COL[o]};stroke-width:2.4;`:"";
+    if(c.id===sel)stl="stroke:var(--fg);stroke-width:2.8;filter:drop-shadow(0 0 5px var(--fg));";
+    else if(c.id===tip)stl="stroke:#f2c200;stroke-width:3.2;";
+    h+=`<path data-c="${c.id}" d="${c.d}" style="${stl}fill:url(#terrainLand)"><title>${c.n}</title></path>`;
+    if(o>=0)ov+=`<path d="${c.d}" fill="${COL[o]}" opacity=".32"/>`;
+  });
+  svg.innerHTML=FD+BG+h+`<g style="pointer-events:none">${ov}</g>`+FG+'<g id="bd" style="pointer-events:none"></g>';
+  badges();hud();
+}
+function badges(){
+  let h="";
+  if(mode==="game")codes.forEach(a=>{if(mine(a))adj[a].forEach(e=>{if(!mine(e)&&rel[e]===1){const[x1,y1]=B[a].c,[x2,y2]=B[e].c;h+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="fr"/>`}})});
+  R.forEach(c=>{
+    const[x,y]=c.c;
+    if(mode==="menu"){h+=`<text x="${x}" y="${y+3}" font-size="9" fill="${c.id===pick?"#fff":"var(--fg)"}" opacity=".75">${c.id}</text>`;return}
+    const m=mine(c.id),v=Math.floor(m?st[c.id].a:st[c.id].d);
+    if(m){const n=Math.min(5,1+Math.floor(st[c.id].l/2));for(let i=0;i<n;i++){const hh=3+(i%3)*1.6;h+=`<rect x="${(x-n*1.6+i*3.2).toFixed(1)}" y="${(y-11.5-hh).toFixed(1)}" width="2.4" height="${hh}" fill="#ffe9a8" stroke="rgba(0,0,0,.45)" stroke-width=".4"/>`}}
+    h+=`<circle cx="${x}" cy="${y}" r="8.5" fill="${m?"rgba(35,78,95,.96)":rel[c.id]===1?"rgba(132,51,43,.96)":rel[c.id]===2?"rgba(53,101,61,.96)":"rgba(18,28,32,.88)"}" stroke="rgba(240,231,202,.9)" stroke-width="1.1"/><text x="${x}" y="${y+3.4}" font-size="${v>99?7:10}" fill="#fff">${v}</text>`;
+    if(V.w<480)h+=`<text x="${x}" y="${y+18}" font-size="5.8" fill="#f2ead2" stroke="#1b2b30" stroke-width=".8" paint-order="stroke">${c.id}</text>`;
+  });
+  FX.forEach(q=>{h+=`<circle class="rp" cx="${q.x}" cy="${q.y}" r="6" stroke="${q.c}"/>`;q.k--});FX=FX.filter(q=>q.k>0);
+  const g=$("bd");if(g)g.innerHTML=h;
+}
+function hud(){
+  if(mode==="menu"){$("status").textContent=pick?`Startland: ${B[pick].n}`:"Wähle dein Startland";$("go").disabled=!pick;$("sel").value=pick||"";return}
+  const[m,p,pr,ar]=rates();
+  $("chips").innerHTML=`<div class="chip">💰 <b>${fmt(money)}</b> (+${m.toFixed(1)}/s)</div><div class="chip">👥 <b>${fmt(man)}</b> (+${p.toFixed(1)}/s)</div><div class="chip">🏛️ <b>${Math.floor(pm)}</b> (+${pr.toFixed(2)}/s)</div><div class="chip">⚔️ ${fmt(ar)}</div><div class="chip">🏭 ${codes.filter(c=>mine(c)).reduce((z,c)=>z+(st[c].fac||0),0)} Fabriken</div><div class="chip">🌍 ${count(0)}/${codes.length}<span class="pb"><i style="width:${count(0)/codes.length*100}%"></i></span></div>`;
+  $("status").textContent=won?"Sieg! Du beherrschst ganz Europa.":lost?"Niederlage: du hast alle Länder verloren.":rq?`Forschung: ${RK.find(r=>r[0]===rq.k)[1]} (noch ${rq.t} s)`:(()=>{const t=tipC();return t?`Tipp: ${B[t].n} (gold umrandet) ist dein schwächster Nachbar, Verteidigung ${Math.floor(st[t].d)}.`:"Baue Städte aus und forsche."})();
+  $("auto").textContent="Auto-Rekrutierung: "+(auto?"an":"aus");
+  upd();
+}
+function upd(){
+  document.querySelectorAll("#panel button").forEach(b=>{const d=b.dataset;
+    b.disabled=won||lost||(d.cost&&money<+d.cost)||(d.man&&man<+d.man)||(d.pm&&pm<+d.pm)||(d.r&&rq)||(d.lock&&res.mil<+d.lock)});
+  if(sel&&mode==="game"){const e=$(mine(sel)?"pa":"pd");if(e)e.textContent=Math.floor(mine(sel)?st[sel].a:st[sel].d)}
+}
+function panel(){
+  const P=$("panel");
+  if(tab==="res"){
+    P.innerHTML=RK.map(r=>{const l=res[r[0]],c=Math.round(80*Math.pow(2,l));
+      return `<div class="row"><button data-act="r:${r[0]}" data-r="1" data-cost="${l>=3?1e18:c}">${r[1]} ${l>=3?"(max.)":`Stufe ${l+1}: ${c} 💰, ${15+15*l} s`}</button><span class="sub">${r[2]} · aktuell Stufe ${l}</span></div>`}).join("")+'<div class="sub">Es kann immer nur eine Technologie gleichzeitig erforscht werden.</div>';
+    upd();return;
+  }
+  if(!sel){P.innerHTML="Tippe auf ein Land oder wähle eines deiner Länder: <div class=\"row\">"+codes.filter(mine).map(c=>`<button class="sec" data-go="${c}">${B[c].n} ${Math.floor(st[c].a)}</button>`).join("")+"</div>";return}
+  const c=sel,s=st[c],n=B[c].n;
+  if(mine(c)){
+    const uc=upCost(c);
+    P.innerHTML=`${flag(c)} <b>${n}</b> · Stadtstufe ${s.l} · Armee <b id="pa"></b> · Infanterie ${Math.floor(s.inf||0)} · Panzer ${Math.floor(s.tank||0)} · Luftwaffe ${Math.floor(s.air||0)} · Befestigung ${s.fort||0} · Fabrik ${s.fac||0} · Kaserne ${s.barr||0} · Artillerie ${Math.floor(s.art||0)} · +${(B[c].val*.5*(1+.6*s.l)*(1+.35*(s.fac||0))*mm()).toFixed(1)} Geld/s · +${(B[c].val*.1*(1+.5*s.l)*pp()).toFixed(1)} Manpower/s<div class="row"><button data-act="up" data-cost="${uc}">${s.l>=10?"Städte max.":`Städte ausbauen (${uc} 💰)`}</button><button data-act="t10" data-man="10">+10 Infanterie (10 👥)</button><button data-act="t50" data-man="50">+50 Infanterie (50 👥)</button><button data-act="tank" data-man="20" data-cost="60" data-lock="1">+40 Panzer (20 👥, 60 💰, Militär 1)</button><button data-act="air" data-man="30" data-cost="180" data-lock="2">+100 Flugzeuge (30 👥, 180 💰, Militär 2)</button><button data-act="trade" data-cost="50">Handelsabkommen (+25 👥, 50 💰)</button><button data-act="fortify" data-cost="100">Stellung ausbauen (100 💰)</button><button data-act="factory" data-cost="180">Fabrik bauen (180 💰)</button><button data-act="barracks" data-cost="130">Kaserne bauen (130 💰)</button><button data-act="art" data-cost="90" data-man="12" data-lock="1">+10 Artillerie (90 💰, 12 👥)</button></div>
+    <div class="row"><b>Armee verlegen:</b> ${[...adj[c]].filter(n=>mine(n)).map(n=>`<button class="sec" data-act="transfer" data-target="${n}">25 % nach ${B[n].n}</button>`).join("")||'<span class="sub">Keine eigenen Nachbarprovinzen.</span>'}</div>
+    <div class="sub">Fabriken steigern Geldproduktion, Kasernen die Manpower. Artillerie unterstützt Grenzkämpfe. Armeen lassen sich in angrenzende eigene Provinzen verlegen.</div>`;
+  }else{
+    const r=rel[c],bd=border(c);
+    let b="";
+    if(r===0){if(bd)b+=`<button data-act="war" data-pm="${dc(25)}" style="background:var(--p1)">Krieg erklären (${dc(25)} 🏛️)</button>`;b+=`<button data-act="ally" data-pm="${dc(15)}" style="background:var(--p2)">Bündnis (${dc(15)} 🏛️)</button>`}
+    else if(r===1)b=`<button data-act="peace" data-pm="${dc(10)}">Waffenstillstand (${dc(10)} 🏛️)</button><button data-act="treaty" data-pm="${dc(18)}">Friedensvertrag: Geld fordern (${dc(18)} 🏛️)</button>`;
+    else b=`<button data-act="brk" class="sec">Bündnis beenden</button>`;
+    P.innerHTML=`${flag(c)} <b>${n}</b> · Wert ${B[c].val} · ${["neutral","im Krieg mit dir","verbündet (+Geld)"][r]} · Verteidigung <b id="pd"></b><div class="row">${b}</div><div class="sub">${bd?"Grenzt an dein Gebiet.":"Grenzt nicht an dein Gebiet."} Im Krieg greifen deine Grenzarmeen automatisch an, der Gegner schlägt zurück.</div>`;
+  }
+  P.innerHTML+='<div class="row">Nachbarn: '+[...adj[sel]].map(n=>`<button class="sec" data-go="${n}">${B[n].n}</button>`).join("")+"</div>";
+  upd();
+}
+function capture(e,a){
+  own[e]=0;rel[e]=0;st[e]={l:0,a:Math.max(2,st[a].a*.3),inf:Math.max(2,st[a].a*.3),tank:0,air:0,art:0,fac:0,barr:0,fort:0,d:0};st[a].a*=.7;
+  log(`<b>${B[e].n}</b> wurde erobert!`);beep(660,.25);FX.push({x:B[e].c[0],y:B[e].c[1],k:2,c:"#fff"});
+  if(count(0)===codes.length){won=true;log("Ganz Europa gehört dir!");clearInterval(timer);try{localStorage.removeItem(SK)}catch(x){}showEnd(true)}
+}
+function lose(a,e){
+  own[a]=1;rel[a]=1;st[a]={l:0,a:0,inf:0,tank:0,air:0,art:0,fac:0,barr:0,fort:0,d:Math.round(st[e].d*.6)+3};
+  log(`<b>${B[a].n}</b> wurde von ${B[e].n} erobert!`);beep(180,.4);FX.push({x:B[a].c[0],y:B[a].c[1],k:2,c:"#ff3b30"});
+  if(!count(0)){lost=true;clearInterval(timer);try{localStorage.removeItem(SK)}catch(x){}showEnd(false)}
+}
+function autoRecruit(){
+  const f=codes.filter(front);if(!f.length||man<1)return;
+  const k=Math.floor(man/f.length);if(k<1)return;
+  f.forEach(c=>st[c].a+=k);man-=k*f.length;
+}
+function step(){
+  if(mode!=="game"||won||lost||paused)return;
+  const[m,p,pr]=rates();money+=m;man+=p;pm+=pr;
+  let ev=false;
+  if(rq&&--rq.t<=0){res[rq.k]++;log(`Forschung abgeschlossen: ${RK.find(r=>r[0]===rq.k)[1]}`);rq=null;if(tab==="res")panel()}
+  codes.forEach(c=>{if(!mine(c)&&Math.random()<.35)st[c].d+=.15+B[c].val*.04});
+  if(auto)autoRecruit();
+  if(Math.random()<1/50)event();
+  if(Math.random()<1/20){const fo=codes.filter(c=>!mine(c)),a=fo[Math.random()*fo.length|0],nb=a?[...adj[a]].filter(x=>!mine(x)):[];
+    if(nb.length){const b=nb[Math.random()*nb.length|0],[w,l]=B[a].val>=B[b].val?[a,b]:[b,a];st[l].d*=.85;st[w].d*=.95;if(Math.random()<.3)log(`${B[w].n} und ${B[l].n} führen Krieg gegeneinander.`)}}
+  if(++tk%10===0)save();
+  if(Math.random()<.004*[.5,1,2][LV]){
+    const c=codes.filter(x=>!mine(x)&&rel[x]===0&&border(x));
+    if(c.length){const e=c[Math.random()*c.length|0];rel[e]=1;log(`<b>${B[e].n}</b> erklärt dir den Krieg!`);beep(300,.2);ev=true}
+  }
+  codes.forEach(e=>{
+    if(mine(e)||rel[e]!==1)return;
+    for(const a of [...adj[e]].filter(mine)){
+      if(mine(e))break;
+      const s=st[a],E=st[e];
+      if(s.a>=2){const combined=(s.a||0),techBonus=1+(s.tank||0)*.004+(s.air||0)*.0015;
+        const artBonus=1+(s.art||0)*.012;
+        const att=(combined*.3+.5)*techBonus*artBonus;E.d-=att*(.9+Math.random()*.2)*ml();s.a-=att*.35;
+        s.tank=Math.max(0,(s.tank||0)*.999);s.air=Math.max(0,(s.air||0)*.999)}
+      s.a-=E.d*.12*(.8+Math.random()*.4)*[.7,1,1.4][LV]*(1-.15*res.fort)*(1-.08*(s.fort||0));
+      if(E.d<=0){capture(e,a);ev=true;break}
+      if(s.a<=0){s.a=0;if(Math.random()<.4){lose(a,e);ev=true}}
+    }
+  });
+  if(ev){render();panel()}else{badges();hud()}
+}
+function click(c){
+  if(mode==="menu"){pick=c;render();return}
+  sel=sel===c?null:c;tab="land";render();panel();
+}
+$("panel").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b||b.disabled)return;
+  if(b.dataset.go){sel=b.dataset.go;render();panel();return}
+  if(won||lost)return;
+  const a=b.dataset.act,c=sel,d=b.dataset;
+  if(d.cost&&money<+d.cost||d.man&&man<+d.man||d.pm&&pm<+d.pm)return;
+  if(a.startsWith("r:")){const k=a.slice(2);if(rq||res[k]>=3)return;money-=+d.cost;rq={k,t:15+15*res[k]}}
+  else if(a==="up"){money-=+d.cost;st[c].l++}
+  else if(a==="t10"||a==="t50"){man-=+d.man;st[c].a+=+d.man;st[c].inf=(st[c].inf||0)+(+d.man)}
+  else if(a==="tank"){man-=20;money-=60;st[c].a+=40;st[c].tank=(st[c].tank||0)+40}
+  else if(a==="air"){man-=30;money-=180;st[c].a+=100;st[c].air=(st[c].air||0)+100}
+  else if(a==="trade"){money-=50;man+=25;log(`Handelsabkommen in ${B[c].n}: +25 Manpower.`)}
+  else if(a==="fortify"){money-=100;st[c].fort=Math.min(5,(st[c].fort||0)+1);log(`Verteidigungsstellung in ${B[c].n} verbessert (Stufe ${st[c].fort}/5).`)}
+  else if(a==="factory"){money-=180;st[c].fac=Math.min(5,(st[c].fac||0)+1);log(`Industrie in ${B[c].n} ausgebaut: Fabrikstufe ${st[c].fac}.`)}
+  else if(a==="barracks"){money-=130;st[c].barr=Math.min(5,(st[c].barr||0)+1);log(`Kaserne in ${B[c].n} ausgebaut: Stufe ${st[c].barr}.`)}
+  else if(a==="art"){money-=90;man-=12;st[c].art=(st[c].art||0)+10;st[c].a+=10;log(`Artillerie in ${B[c].n} stationiert.`)}
+  else if(a==="transfer"){const target=d.target;if(mine(target)&&adj[c].has(target)){const amount=Math.floor(st[c].a*.25);st[c].a-=amount;st[target].a+=amount;const ar=Math.floor((st[c].art||0)*.25);st[c].art-=ar;st[target].art=(st[target].art||0)+ar;log(`${amount} Truppen nach ${B[target].n} verlegt.`)}}
+  else if(a==="treaty"){pm-=+d.pm;rel[c]=0;money+=Math.max(40,Math.round(B[c].val*18));log(`Friedensvertrag mit ${B[c].n}: Reparationen erhalten.`)}
+  else if(a==="war"){pm-=+d.pm;beep(300,.2);rel[c]=1;log(`Du erklärst <b>${B[c].n}</b> den Krieg!`)}
+  else if(a==="peace"){pm-=+d.pm;rel[c]=0;log(`Frieden mit ${B[c].n}.`)}
+  else if(a==="ally"){pm-=+d.pm;rel[c]=2;log(`Bündnis mit <b>${B[c].n}</b> geschlossen.`)}
+  else if(a==="brk"){rel[c]=0;log(`Bündnis mit ${B[c].n} beendet.`)}
+  render();panel();
+});
+$("tabL").onclick=()=>{tab="land";panel()};
+$("tabR").onclick=()=>{tab="res";panel()};
+$("auto").onclick=()=>{auto=!auto;hud()};
+$("all").onclick=()=>{
+  for(let i=0;i<300;i++){
+    let b=null;codes.forEach(c=>{if(mine(c)&&upCost(c)<=money&&(!b||upCost(c)<upCost(b)))b=c});
+    if(!b)break;money-=upCost(b);st[b].l++;
+  }
+  hud();if(tab==="land")panel();
+};
+
+function showMenu(){
+  clearInterval(timer);$("endbox").classList.add("hide");mode="menu";pick=null;sel=null;
+  $("menuUI").classList.remove("hide");$("gameUI").classList.add("hide");$("log").classList.add("hide");$("panel").classList.add("hide");$("diplomacy").classList.add("hide");
+  V={...FULL};setView();$("cont").classList.toggle("hide",!hasSave());render();
+}
+function start(){
+  LV=+$("lv").value;tk=0;own={};st={};rel={};won=lost=false;logs=[];sel=null;tab="land";
+  money=100;man=20;pm=30;rq=null;auto=false;res={eco:0,pop:0,mil:0,adm:0,log:0,fort:0,dip:0,bil:0};
+  codes.forEach(c=>{own[c]=1;rel[c]=0;st[c]={l:0,a:0,inf:0,tank:0,air:0,art:0,fac:0,barr:0,fort:0,d:Math.round((6+B[c].val*5)*[.7,1,1.4][LV])}});
+  own[pick]=0;st[pick].a=18;st[pick].inf=18;
+  if($("scenario").value==="ww2"){
+    // Starting pressure and diplomatic blocs create an active European 1939 campaign.
+    if(["DE","IT","HU","RO","BG"].includes(pick))money=145;
+    if(["UK","FR","PL"].includes(pick))man=30;
+  }
+  setScenarioFactions();mode="game";
+  $("menuUI").classList.add("hide");$("gameUI").classList.remove("hide");$("log").classList.remove("hide");$("panel").classList.remove("hide");$("diplomacy").classList.remove("hide");
+  ctl();log("3. Erkläre dem gold umrandeten Nachbarn den Krieg: deine Grenzarmeen kämpfen automatisch.");log("2. Baue Fabriken und Kasernen, produziere Infanterie und Artillerie.");log(`1. ${B[pick].n} tritt in die Europa-Kampagne ein. Sichere Industrie und Grenzen.`);
+  render();panel();
+  clearInterval(timer);timer=setInterval(step,1000);
+}
+$("menu").onclick=()=>{save();showMenu()};
+$("cont").onclick=load;
+$("eb").onclick=showMenu;
+$("ec").onclick=()=>$("endbox").classList.add("hide");
+$("spd").onclick=()=>{spd=spd===1?2:spd===2?4:1;$("spd").textContent="Tempo: "+spd+"×";clearInterval(timer);if(mode==="game"&&!won&&!lost)timer=setInterval(step,1000/spd)};
+$("pause").onclick=()=>{paused=!paused;$("pause").textContent=paused?"▶ Weiter":"⏸ Pause"};
+$("mute").onclick=()=>{mute=!mute;$("mute").textContent=mute?"🔇":"🔊"};
+$("go").onclick=()=>{if(pick)start()};
+$("rnd").onclick=()=>{pick=codes[Math.random()*codes.length|0];render()};
+$("sel").innerHTML='<option value="">Land wählen …</option>'+[...R].sort((a,b)=>a.n.localeCompare(b.n,"de")).map(c=>`<option value="${c.id}">${c.n}</option>`).join("");
+$("sel").onchange=e=>{pick=e.target.value||null;render()};
+
+// --- Erobere Europa: WW2-Strategie-Update ---
+const baseStep = step;
+
+function setScenarioFactions(){
+  aiOwner={};
+  if($("scenario").value==="sandbox"){initAI();return}
+  const blocs={
+    axis:["DE","IT","HU","RO","BG"],
+    allies:["UK","FR","PL","BE","NL","NO","DK","GR"],
+    soviet:["RU","BY","UA","EE","LV","LT","FI"],
+    neutral:["ES","PT","CH","SE","IE","TR","IS","MT","AL","ME","BA","RS","HR","SI","AT","CZ","SK","MD"]
+  };
+  Object.entries(blocs).forEach(([f,arr])=>arr.forEach(c=>{if(B[c]&&own[c]!==0)aiOwner[c]=f}));
+  codes.forEach(c=>{if(own[c]!==0&&!aiOwner[c])aiOwner[c]=c});
+}
+
+let aiClock = 0, civilClock = 0;
+let aiOwner = {};
+function initAI(){ codes.forEach(c=>{ if(own[c]!==0 && !aiOwner[c]) aiOwner[c]=c; }); }
+function aiTurn(){
+  // Each original AI country is a separate faction; conquests transfer provinces.
+  initAI();
+  const candidates = codes.filter(c=>own[c]!==0 && [...adj[c]].some(n=>own[n]!==0 && aiOwner[n]!==aiOwner[c]));
+  if(!candidates.length) return;
+  const attacker = candidates[Math.random()*candidates.length|0];
+  const targets = [...adj[attacker]].filter(n=>own[n]!==0 && aiOwner[n]!==aiOwner[attacker]);
+  if(!targets.length) return;
+  const target = targets[Math.random()*targets.length|0];
+  const power = Math.max(1, st[attacker].d||0);
+  const defense = Math.max(1, st[target].d||0);
+  // AI skirmishes weaken both sides; a clear advantage can change ownership.
+  st[attacker].d = Math.max(1, power - defense*.025);
+  st[target].d = Math.max(1, defense - power*.035);
+  if(power > defense*2.1 && Math.random()<.19){
+    aiOwner[target]=aiOwner[attacker];
+    st[target].d=Math.max(4,Math.round(power*.22));
+    log(`🤖 ${B[attacker].n} erobert ${B[target].n}.`);
+  }
+}
+function civilUnrest(){
+  const nations=codes.filter(c=>own[c]!==0 && (st[c].d||0)>12);
+  if(!nations.length) return;
+  const c=nations[Math.random()*nations.length|0];
+  const loss=Math.min(st[c].d*.28, 18);
+  st[c].d=Math.max(2,st[c].d-loss);
+  // A neighboring AI province may break away as a neutral buffer state.
+  const n=[...adj[c]].find(x=>own[x]!==0 && aiOwner[x]===aiOwner[c] && x!==c);
+  if(n && Math.random()<.45){
+    aiOwner[n]=`REB-${n}-${tk}`;
+    st[n].d=Math.max(5,(st[n].d||0)*.65);
+    log(`✊ Bürgerkrieg in ${B[c].n}: ${B[n].n} spaltet sich als Rebellenstaat ab.`);
+  } else log(`✊ Unruhen in ${B[c].n}: Verteidigung und Stabilität sinken.`);
+}
+step = function(){
+  baseStep();
+  if(mode!=="game"||won||lost||paused) return;
+  aiClock++;
+  civilClock++;
+  if(aiClock>=12){aiClock=0;aiTurn();}
+  if(civilClock>=95){civilClock=0;if(Math.random()<.45)civilUnrest();}
+  if(tk%5===0){render();if(tab==="land")panel();}
+};
+function diplomacyPanel(){
+  const el=$("diplomacy");
+  if(!el) return;
+  const allies=codes.filter(c=>!mine(c)&&rel[c]===2);
+  const wars=codes.filter(c=>!mine(c)&&rel[c]===1);
+  el.innerHTML=`<b>Diplomatie-Übersicht</b><div class="sub">Verbündete: ${allies.length} · Kriegsgegner: ${wars.length}</div>
+    <div class="row">${allies.slice(0,8).map(c=>`<span class="chip">🟢 ${B[c].n}</span>`).join("")}${wars.slice(0,8).map(c=>`<span class="chip">🔴 ${B[c].n}</span>`).join("")}</div>
+    <div class="sub">KI-Staaten handeln in regelmäßigen Abständen eigenständig. Bürgerkriegsereignisse können Stabilität und Verteidigung schwächen.</div>`;
+}
+const oldHud=hud;
+hud=function(){oldHud();if(mode==="game")diplomacyPanel();};
+
+showMenu();
+</script>
+
+<script>
+// COMMAND EDITION: additional Hearts-of-Iron-inspired management systems.
+// This is an original, simplified browser game inspired by the public feature set,
+// not a copy of Roblox assets, code, or exact proprietary interface.
+let ccTab = "army";
+let ccStock = {steel:90, oil:55, aluminium:40, equipment:120, artillery:25, fuel:80};
+let ccLines = [];
+let ccDivisions = [];
+let ccFocus = "industry";
+let ccFocusTicks = 0;
+let ccConvoys = 2;
+let ccPuppet = {};
+let ccAirMission = "defend";
+let ccNavy = 4;
+let ccNextDiv = 1;
+let ccLastOrder = "Keine laufenden Befehle.";
+
+function ccInitNation(){
+  if(!ccDivisions.length){
+    const home = pick || codes.find(mine);
+    if(home && mine(home)){
+      ccDivisions.push({id:ccNextDiv++,name:"1. Infanterie-Division",type:"inf",size:Math.max(8,Math.floor((st[home].inf||st[home].a||18)/2)),loc:home,org:100,exp:25});
+      ccDivisions.push({id:ccNextDiv++,name:"2. Reserve-Division",type:"inf",size:Math.max(6,Math.floor((st[home].a||18)/3)),loc:home,org:85,exp:10});
+    }
+  }
+}
+function ccCountOwned(){return codes.filter(mine).length}
+function ccStat(label,val,sub){return `<div class="stat"><span class="muted">${label}</span><b>${val}</b><span class="muted">${sub||""}</span></div>`}
+function ccOpen(which){
+  ccInitNation(); ccTab=which;
+  $("panel").classList.add("hide");
+  $("commandCentre").classList.remove("hide");
+  ["cmdArmy","cmdProd","cmdGov","cmdDip"].forEach(id=>$(id).classList.toggle("sec",id!==({army:"cmdArmy",prod:"cmdProd",gov:"cmdGov",dip:"cmdDip"}[which])));
+  ccRender();
+}
+function ccRender(){
+  const el=$("commandCentre"); if(!el || mode!=="game") return;
+  const country=B[pick] ? B[pick].n : "Dein Staat";
+  const head=`<h2>${({army:"Armee & Front",prod:"Industrie & Produktion",gov:"Regierung & Forschung",dip:"Diplomatie & Handel"})[ccTab]}</h2>`;
+  let body="";
+  if(ccTab==="army"){
+    const divisions=ccDivisions.map(d=>`<div class="stat"><b>${d.name}</b><span class="muted">${({inf:"Infanterie",tank:"Panzer",art:"Artillerie",motor:"Motorisiert"})[d.type]} · ${B[d.loc]?.n||d.loc} · Stärke ${d.size} · Organisation ${Math.round(d.org)} %</span>
+      <div class="cmdrow"><button class="sec" data-cc="move" data-id="${d.id}">Verlegen…</button><button class="sec" data-cc="reinforce" data-id="${d.id}">Auffüllen</button><button class="sec" data-cc="rename" data-id="${d.id}">Umbenennen</button></div></div>`).join("");
+    body=`<div class="grid">${ccStat("Divisionen",ccDivisions.length,"Armeegruppen")}${ccStat("Marine",ccNavy+" Schiffe","Konvois: "+ccConvoys)}${ccStat("Luftwaffe",fmt(codes.filter(mine).reduce((a,c)=>a+(st[c].air||0),0)),"Flugzeuge")}${ccStat("Letzter Befehl",ccLastOrder,"")}</div>
+      <div class="line"></div><div class="cmdrow"><button data-cc="newinf">+ Infanterie-Division (20 Ausrüstung)</button><button data-cc="newtank">+ Panzer-Division (30 Stahl, 20 Öl)</button><button data-cc="newart">+ Artillerie-Division (15 Stahl)</button></div>
+      <div class="cmdrow"><label class="muted">Luftwaffenauftrag</label><select id="ccAir"><option value="defend">Lufthoheit / Abfangen</option><option value="support">Bodenunterstützung</option><option value="bomb">Strategische Bombardierung</option></select><button class="sec" data-cc="air">Auftrag setzen</button></div>
+      <div class="line"></div><b>Deine Divisionen</b><div class="grid">${divisions||'<span class="muted">Noch keine Divisionen aufgestellt.</span>'}</div>
+      <p class="muted">Divisionen werden separat geführt. Verlegen ist nur in angrenzende eigene Gebiete möglich. Organisation regeneriert langsam; Nachschub und Treibstoff begrenzen die Kampfkraft.</p>`;
+  } else if(ccTab==="prod"){
+    body=`<div class="grid">${ccStat("Stahl",fmt(ccStock.steel),"Panzer, Artillerie, Industrie")}${ccStat("Öl",fmt(ccStock.oil),"Motorisierung & Treibstoff")}${ccStat("Aluminium",fmt(ccStock.aluminium),"Flugzeugproduktion")}${ccStat("Ausrüstung",fmt(ccStock.equipment),"Infanterie & Nachschub")}${ccStat("Artillerie",fmt(ccStock.artillery),"Geschütze")}${ccStat("Treibstoff",fmt(ccStock.fuel),"Einsatzreserve")}</div>
+      <div class="line"></div><b>Produktionslinien</b><div class="cmdrow"><select id="ccProduct"><option value="equipment">Infanterieausrüstung</option><option value="artillery">Artillerie</option><option value="tank">Panzer</option><option value="air">Flugzeuge</option><option value="ship">Schiffe</option></select><button data-cc="addline">Produktionslinie hinzufügen</button></div>
+      <div class="grid">${ccLines.map((l,i)=>`<div class="stat"><b>${({equipment:"Infanterieausrüstung",artillery:"Artillerie",tank:"Panzer",air:"Flugzeuge",ship:"Schiffe"})[l.type]}</b><span class="muted">Fortschritt ${Math.floor(l.progress)} % · Stufe ${l.level}</span><div class="cmdrow"><button class="sec" data-cc="lineup" data-id="${i}">Ausbauen</button><button class="sec" data-cc="linedown" data-id="${i}">Entfernen</button></div></div>`).join("")||'<span class="muted">Noch keine Produktionslinien. Füge eine Linie hinzu.</span>'}</div>
+      <p class="muted">Produktionslinien verbrauchen Ressourcen und liefern im Zeitverlauf Ausrüstung. Fabriken in deinen Gebieten beschleunigen die Produktion.</p>`;
+  } else if(ccTab==="gov"){
+    const focuses={industry:"Industrieoffensive",army:"Armee modernisieren",research:"Wissenschaft fördern",stability:"Innere Stabilität",logistics:"Logistiknetz"};
+    body=`<div class="grid">${ccStat("Politische Macht",fmt(pm),"Diplomatie & Regierung")}${ccStat("Forschung",Object.values(res).reduce((a,b)=>a+b,0),"Technologiestufen")}${ccStat("Stabilität",Math.max(20,100-Math.floor(civilClock/4))+" %","Vereinfachter nationaler Wert")}</div>
+      <div class="line"></div><b>Nationale Ausrichtung</b><div class="cmdrow"><select id="ccFocus">${Object.entries(focuses).map(([k,v])=>`<option value="${k}" ${ccFocus===k?"selected":""}>${v}</option>`).join("")}</select><button data-cc="focus">Schwerpunkt setzen (15 🏛️)</button></div>
+      <div class="stat"><b>${focuses[ccFocus]}</b><span class="muted">Fortschritt: ${Math.min(100,ccFocusTicks)} %</span></div>
+      <div class="line"></div><b>Forschungsvorschläge</b><div class="cmdrow"><button class="sec" data-cc="research" data-tech="mil">Infanteriewaffen & Doktrin</button><button class="sec" data-cc="research" data-tech="eco">Industrielle Verfahren</button><button class="sec" data-cc="research" data-tech="fort">Feldbefestigungen</button></div>
+      <p class="muted">Ein nationaler Schwerpunkt läuft über Zeit und gibt beim Abschluss einen Bonus. Deine vorhandene Forschungstafel bleibt über den Tab „Forschung“ erreichbar.</p>`;
+  } else {
+    const enemies=codes.filter(c=>!mine(c)&&rel[c]===1), allies=codes.filter(c=>!mine(c)&&rel[c]===2);
+    body=`<div class="grid">${ccStat("Verbündete",allies.length,"Bündnispartner")}${ccStat("Kriege",enemies.length,"Aktive Kriegsgegner")}${ccStat("Handelskonvois",ccConvoys,"Kapazität")}${ccStat("Marinestärke",ccNavy,"Abstrakte Flottenstärke")}</div>
+      <div class="line"></div><b>Handel & Diplomatie</b><div class="cmdrow"><button data-cc="trade">Handelsvertrag: +35 Stahl / −45 Geld</button><button data-cc="convoy">Konvois bauen (20 Stahl, 10 Geld)</button><button data-cc="navy">Flotte ausbauen (25 Stahl, 20 Öl)</button></div>
+      <div class="cmdrow"><select id="ccTarget">${codes.filter(c=>!mine(c)).map(c=>`<option value="${c}">${B[c].n}</option>`).join("")}</select><button class="sec" data-cc="nap">Nichtangriffspakt (10 🏛️)</button><button class="sec" data-cc="puppet">Satellitenstaat fordern (25 🏛️)</button></div>
+      <div class="line"></div><b>Aktuelle Beziehungen</b><div class="cmdrow">${allies.map(c=>`<span class="tag">🟢 ${B[c].n}</span>`).join("")}${enemies.map(c=>`<span class="tag">🔴 ${B[c].n}</span>`).join("")}${!allies.length&&!enemies.length?'<span class="muted">Keine besonderen Beziehungen.</span>':""}</div>
+      <p class="muted">Handel liefert strategische Rohstoffe. Nichtangriffspakte verhindern hier vereinfachte KI-Angriffe auf deine Grenzen für eine begrenzte Zeit. Satellitenstaaten zahlen Tribute, bleiben aber als eigene Gebiete auf der Karte sichtbar.</p>`;
+  }
+  el.innerHTML=head+body;
+  const air=$("ccAir"); if(air)air.value=ccAirMission;
+}
+$("cmdArmy").onclick=()=>ccOpen("army");
+$("cmdProd").onclick=()=>ccOpen("prod");
+$("cmdGov").onclick=()=>ccOpen("gov");
+$("cmdDip").onclick=()=>ccOpen("dip");
+$("tabL").addEventListener("click",()=>{$("commandCentre").classList.add("hide");$("panel").classList.remove("hide")});
+$("tabR").addEventListener("click",()=>{$("commandCentre").classList.add("hide");$("panel").classList.remove("hide")});
+
+$("commandCentre").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-cc]"); if(!b||won||lost)return;
+ const a=b.dataset.cc,id=+b.dataset.id;
+ if(a==="newinf"){
+   if(ccStock.equipment<20)return log("Nicht genug Infanterieausrüstung.");
+   const loc=sel&&mine(sel)?sel:pick; if(!loc||!mine(loc))return log("Wähle zuerst ein eigenes Gebiet.");
+   ccStock.equipment-=20;ccDivisions.push({id:ccNextDiv++,name:"Neue Infanterie-Division",type:"inf",size:10,loc,org:100,exp:0});ccLastOrder="Neue Infanterie aufgestellt.";
+ } else if(a==="newtank"){
+   if(ccStock.steel<30||ccStock.oil<20)return log("Zu wenig Stahl oder Öl für Panzer.");
+   const loc=sel&&mine(sel)?sel:pick; if(!loc||!mine(loc))return log("Wähle zuerst ein eigenes Gebiet.");
+   ccStock.steel-=30;ccStock.oil-=20;ccDivisions.push({id:ccNextDiv++,name:"Panzer-Division",type:"tank",size:8,loc,org:80,exp:0});ccLastOrder="Panzer-Division aufgestellt.";
+ } else if(a==="newart"){
+   if(ccStock.steel<15)return log("Zu wenig Stahl für Artillerie.");
+   const loc=sel&&mine(sel)?sel:pick; if(!loc||!mine(loc))return log("Wähle zuerst ein eigenes Gebiet.");
+   ccStock.steel-=15;ccDivisions.push({id:ccNextDiv++,name:"Artillerie-Gruppe",type:"art",size:6,loc,org:90,exp:0});ccLastOrder="Artillerie aufgestellt.";
+ } else if(a==="move"){
+   const d=ccDivisions.find(x=>x.id===id);if(!d)return;
+   const opts=[...adj[d.loc]].filter(mine);if(!opts.length)return log("Von hier gibt es kein angrenzendes eigenes Ziel.");
+   const target=prompt("Ziel eingeben: "+opts.map(x=>B[x].n).join(", "),B[opts[0]].n);if(!target)return;
+   const dest=opts.find(x=>B[x].n.toLowerCase()===target.toLowerCase()||x===target.toUpperCase());
+   if(!dest)return log("Ungültiges Ziel. Nutze den exakten Ländernamen.");
+   d.loc=dest;d.org=Math.max(35,d.org-12);ccLastOrder=d.name+" verlegt nach "+B[dest].n+".";
+ } else if(a==="reinforce"){
+   const d=ccDivisions.find(x=>x.id===id);if(!d)return;
+   if(man<5||ccStock.equipment<10)return log("Zu wenig Manpower oder Ausrüstung.");
+   man-=5;ccStock.equipment-=10;d.size+=5;d.org=Math.min(100,d.org+8);ccLastOrder=d.name+" verstärkt.";
+ } else if(a==="rename"){
+   const d=ccDivisions.find(x=>x.id===id);if(!d)return;const n=prompt("Neuer Divisionsname:",d.name);if(n)d.name=n.slice(0,35);
+ } else if(a==="addline"){
+   const type=$("ccProduct").value; if(ccLines.length>=5)return log("Maximal fünf Produktionslinien.");
+   ccLines.push({type,progress:0,level:1});ccLastOrder="Produktionslinie gestartet.";
+ } else if(a==="lineup"){
+   const l=ccLines[id];if(!l)return;if(money<80)return log("Nicht genug Geld.");money-=80;l.level++;ccLastOrder="Produktionslinie ausgebaut.";
+ } else if(a==="linedown"){ccLines.splice(id,1)}
+ else if(a==="focus"){
+   const f=$("ccFocus").value;if(pm<15)return log("Nicht genug politischer Macht.");pm-=15;ccFocus=f;ccFocusTicks=0;ccLastOrder="Nationaler Schwerpunkt: "+f;
+ } else if(a==="research"){
+   const k=b.dataset.tech;if(rq)return log("Es läuft bereits eine Forschung.");if(res[k]>=3)return log("Diese Technologie ist bereits maximiert.");
+   const cost=80+res[k]*40;if(money<cost)return log("Nicht genug Geld für die Forschung.");money-=cost;rq={k,t:25+res[k]*15};ccLastOrder="Forschung gestartet.";
+ } else if(a==="trade"){
+   if(money<45)return log("Nicht genug Geld für den Handel.");money-=45;ccStock.steel+=35;ccStock.oil+=8;ccLastOrder="Handelskonvoi eingetroffen.";
+ } else if(a==="convoy"){
+   if(ccStock.steel<20||money<10)return log("Ressourcen fehlen.");ccStock.steel-=20;money-=10;ccConvoys++;
+ } else if(a==="navy"){
+   if(ccStock.steel<25||ccStock.oil<20)return log("Ressourcen fehlen.");ccStock.steel-=25;ccStock.oil-=20;ccNavy++;
+ } else if(a==="nap"){
+   const c=$("ccTarget").value;if(pm<10)return log("Nicht genug politischer Macht.");pm-=10;rel[c]=2;ccPuppet[c]=Math.max(ccPuppet[c]||0,90);ccLastOrder="Nichtangriffspakt mit "+B[c].n+".";
+ } else if(a==="puppet"){
+   const c=$("ccTarget").value;if(pm<25)return log("Nicht genug politischer Macht.");if(rel[c]!==1)return log("Satellitenstaaten können nur nach einem Krieg gefordert werden.");pm-=25;rel[c]=0;ccPuppet[c]=1;ccLastOrder=B[c].n+" akzeptiert den Satellitenstatus.";
+ } else if(a==="air"){ccAirMission=$("ccAir").value;ccLastOrder="Luftwaffenauftrag geändert."}
+ ccRender();hud();save();
+});
+const ccBaseStep=step;
+step=function(){
+  ccBaseStep();
+  if(mode!=="game"||won||lost||paused)return;
+  // Industry and logistics tick.
+  ccStock.steel=Math.min(999,ccStock.steel+.035*ccCountOwned());
+  ccStock.oil=Math.min(999,ccStock.oil+.012*ccCountOwned());
+  ccStock.aluminium=Math.min(999,ccStock.aluminium+.01*ccCountOwned());
+  ccStock.fuel=Math.max(0,Math.min(999,ccStock.fuel+.02*ccStock.oil-(ccAirMission==="support"?.08:0)));
+  ccLines.forEach(l=>{
+    const speed=(.35+.07*l.level+ccCountOwned()*.004)*(ccFocus==="industry"?1.25:1);
+    l.progress+=speed;
+    if(l.progress>=100){
+      l.progress-=100;
+      if(l.type==="equipment")ccStock.equipment+=12*l.level;
+      if(l.type==="artillery")ccStock.artillery+=4*l.level;
+      if(l.type==="tank"&&ccStock.steel>=5&&ccStock.oil>=4){ccStock.steel-=5;ccStock.oil-=4;ccStock.equipment+=3*l.level}
+      if(l.type==="air"&&ccStock.aluminium>=5&&ccStock.oil>=2){ccStock.aluminium-=5;ccStock.oil-=2;ccStock.fuel+=8*l.level}
+      if(l.type==="ship"&&ccStock.steel>=8&&ccStock.oil>=5){ccStock.steel-=8;ccStock.oil-=5;ccNavy+=1}
+    }
+  });
+  ccDivisions.forEach(d=>{d.org=Math.min(100,d.org+.18);if(ccFocus==="army")d.exp=Math.min(100,d.exp+.02)});
+  ccFocusTicks=Math.min(100,ccFocusTicks+(ccFocus==="research"?.28:.16));
+  if(ccFocusTicks>=100){
+    ccFocusTicks=0;
+    if(ccFocus==="industry")money+=100;
+    if(ccFocus==="army")ccDivisions.forEach(d=>d.exp=Math.min(100,d.exp+15));
+    if(ccFocus==="research")res.bil=Math.min(3,res.bil+1);
+    if(ccFocus==="stability")pm+=20;
+    if(ccFocus==="logistics")ccStock.fuel=Math.min(999,ccStock.fuel+40);
+    log("Nationaler Schwerpunkt abgeschlossen: "+ccFocus+".");
+  }
+  if(ccPuppet && tk%10===0)Object.keys(ccPuppet).forEach(c=>{if(ccPuppet[c])money+=2});
+  if(tk%4===0 && !$("commandCentre").classList.contains("hide"))ccRender();
+  if(tk%10===0)save();
+};
+const ccOldStart=start;
+start=function(){ccOldStart();ccStock={steel:90,oil:55,aluminium:40,equipment:120,artillery:25,fuel:80};ccLines=[];ccDivisions=[];ccNextDiv=1;ccFocus="industry";ccFocusTicks=0;ccConvoys=2;ccPuppet={};ccNavy=4;ccLastOrder="Keine laufenden Befehle.";ccInitNation();};
+const ccOldLoad=load;
+load=function(){ccOldLoad();try{const s=JSON.parse(localStorage.getItem(SK)||"{}");if(s.cc){({ccStock,ccLines,ccDivisions,ccFocus,ccFocusTicks,ccConvoys,ccPuppet,ccNavy,ccNextDiv,ccLastOrder,ccAirMission}=s.cc)}}catch(e){}ccInitNation();};
+const ccOldSave=save;
+save=function(){ccOldSave();try{if(mode==="game"&&!won&&!lost){const s=JSON.parse(localStorage.getItem(SK)||"{}");s.cc={ccStock,ccLines,ccDivisions,ccFocus,ccFocusTicks,ccConvoys,ccPuppet,ccNavy,ccNextDiv,ccLastOrder,ccAirMission};localStorage.setItem(SK,JSON.stringify(s))}}catch(e){}};
+</script>
+
+</body>
+</html>
